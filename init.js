@@ -1,18 +1,25 @@
 var context;
 var queue;
-var WIDTH = 1024; // game screen, we can use variables for more screens
-var HEIGHT = 768; // game screen, we can use variables for more screens
+var WIDTH = 1024;
+var HEIGHT = 768;
 var mouseXPosition;
 var mouseYPosition;
 var batImage;
 var stage;
 var animation;
+var animationFairy;
 var deathAnimation;
 var spriteSheet;
+var spriteSheetFairy;
 var enemyXPos=100;
 var enemyYPos=100;
+var fairyXPos=300;
+var fairyYPos=50;
+
 var enemyXSpeed = 1.5;
 var enemyYSpeed = 1.75;
+var fairyXSpeed = 1.8;
+var fairyYSpeed = 1.7;
 var score = 0;
 var scoreText;
 var gameTimer;
@@ -29,22 +36,21 @@ window.onload = function()
     context = canvas.getContext('2d');
     context.canvas.width = WIDTH;
     context.canvas.height = HEIGHT;
-    stage = new createjs.Stage("myCanvas"); // takes canvas object and create Stage
+    stage = new createjs.Stage("myCanvas");
 
     /*
      *      Set up the Asset Queue and load sounds
      *
      */
-    queue = new createjs.LoadQueue(false); // false because are local, we do not use AJAX -> false
-                                            // asset file that need to be loaded for the game
-                                            // insure that all  the objects will be loaded
-
+    queue = new createjs.LoadQueue(false);
+    queue.installPlugin(createjs.Sound);
+    queue.on("complete", queueLoaded, this);
+    createjs.Sound.alternateExtensions = ["ogg"];
 
     /*
      *      Create a load manifest for all assets
      *
      */
-    //
     queue.loadManifest([
         {id: 'backgroundImage', src: 'assets/background.png'},
         {id: 'crossHair', src: 'assets/crosshair.png'},
@@ -54,15 +60,10 @@ window.onload = function()
         {id: 'tick', src: 'assets/tick.mp3'},
         {id: 'deathSound', src: 'assets/die.mp3'},
         {id: 'batSpritesheet', src: 'assets/batSpritesheet.png'},
-        {id: 'batDeath', src: 'assets/batDeath.png'}
+        {id: 'fairySpritesheet', src: 'assets/fairySpritesheet.png'},
+        {id: 'batDeath', src: 'assets/batDeath.png'},
     ]);
-
-    queue.installPlugin(createjs.Sound);        // install
-    console.log(this);
-    queue.on("complete", queueLoaded, this);
-    createjs.Sound.alternateExtensions = ["ogg"];
-
-    queue.load();// load all the loadManifest so they can be available
+    queue.load();
 
     /*
      *      Create a timer that updates once per second
@@ -70,17 +71,15 @@ window.onload = function()
      */
     gameTimer = setInterval(updateTime, 1000);
 
-};
+}
 
 function queueLoaded(event)
 {
     // Add background image
-    //Bitmap check
-    var backgroundImage = new createjs.Bitmap(queue.getResult("backgroundImage"));
+    var backgroundImage = new createjs.Bitmap(queue.getResult("backgroundImage"))
     stage.addChild(backgroundImage);
 
     //Add Score
-    //Text check , for bitmap text
     scoreText = new createjs.Text("1UP: " + score.toString(), "36px Arial", "#FFF");
     scoreText.x = 10;
     scoreText.y = 10;
@@ -93,35 +92,47 @@ function queueLoaded(event)
     stage.addChild(timerText);
 
     // Play background sound
-    createjs.Sound.play("background", {loop: 0});
+    createjs.Sound.play("background", {loop: -1});
 
     // Create bat spritesheet
     spriteSheet = new createjs.SpriteSheet({
         "images": [queue.getResult('batSpritesheet')],
-        "frames": {"width": 198, "height": 117}, // - the size of the frame
-        "animations": { "flap": [0,4] } // "flat" - method named flap , 5 pictures in our sprite
+        "frames": {"width": 198, "height": 117},
+        "animations": { "flap": [0,4] }
     });
+
+    // Create fairy spritesheet
+    spriteSheetFairy = new createjs.SpriteSheet({
+        "images": [queue.getResult('fairySpritesheet')],
+        "frames": {"width": 150, "height": 170},
+        "animations": { "flap": [0,8] }
+    });
+
+
 
     // Create bat death spritesheet
     batDeathSpriteSheet = new createjs.SpriteSheet({
-    	"images": [queue.getResult('batDeath')],
-    	"frames": {"width": 198, "height" : 148},
-    	"animations": {"die": [0,7, false,2 ] }// false means - do not repeat
+        "images": [queue.getResult('batDeath')],
+        "frames": {"width": 198, "height" : 148},
+        "animations": {"die": [0,7, false,1 ] }
     });
 
     // Create bat sprite
     createEnemy();
+
+    // Create fairy sprite
+    createFairy();
 
     // Create crosshair
     crossHair = new createjs.Bitmap(queue.getResult("crossHair"));
     stage.addChild(crossHair);
 
     // Add ticker
-    //How fast is going to be fast, after
     createjs.Ticker.setFPS(15);
     createjs.Ticker.addEventListener('tick', stage);
-    //tickEvent is going to be used so our stage become faster with 15 frames
     createjs.Ticker.addEventListener('tick', tickEvent);
+    createjs.Ticker.addEventListener('tick', tickEventFairy);
+
 
     // Set up events AFTER the game is loaded
     window.onmousemove = handleMouseMove;
@@ -130,51 +141,89 @@ function queueLoaded(event)
 
 function createEnemy()
 {
-	animation = new createjs.Sprite(spriteSheet, "flap");
+    animation = new createjs.Sprite(spriteSheet, "flap");
     animation.regX = 99;
     animation.regY = 58;
     animation.x = enemyXPos;
     animation.y = enemyYPos;
-    animation.gotoAndPlay("flap"); //
-    stage.addChildAt(animation,1);//
+    animation.gotoAndPlay("flap");
+    stage.addChildAt(animation,1);
 }
 
+function createFairy()
+{
+    animationf = new createjs.Sprite(spriteSheetFairy, "flap");
+    animationf.regX = 76.81;
+    animationf.regY = 86.5;
+    animationf.x = fairyXPos;
+    animationf.y = fairyYPos;
+    animationf.gotoAndPlay("flap");
+    stage.addChildAt(animationf,1);
+}
 function batDeath()
 {
-	deathAnimation = new createjs.Sprite(batDeathSpriteSheet, "die");
-  deathAnimation.regX = 99;
-  deathAnimation.regY = 58;
-  deathAnimation.x = enemyXPos;
-  deathAnimation.y = enemyYPos;
-  deathAnimation.gotoAndPlay("die");
-  stage.addChild(deathAnimation);
+    deathAnimation = new createjs.Sprite(batDeathSpriteSheet, "die");
+    deathAnimation.regX = 99;
+    deathAnimation.regY = 58;
+    deathAnimation.x = enemyXPos;
+    deathAnimation.y = enemyYPos;
+    deathAnimation.gotoAndPlay("die");
+    stage.addChild(deathAnimation);
 }
 
 function tickEvent()
 {
-	//Make sure enemy bat is within game boundaries and move enemy Bat
-	if(enemyXPos < WIDTH && enemyXPos > 0)
-	{
-		enemyXPos += enemyXSpeed;
-	} else 
-	{
-		enemyXSpeed = enemyXSpeed * (-1);
-		enemyXPos += enemyXSpeed;
-	}
-	if(enemyYPos < HEIGHT && enemyYPos > 0)
-	{
-		enemyYPos += enemyYSpeed;
-	} else
-	{
-		enemyYSpeed = enemyYSpeed * (-1);
-		enemyYPos += enemyYSpeed;
-	}
+    //Make sure enemy bat is within game boundaries and move enemy Bat
+    if(enemyXPos < WIDTH && enemyXPos > 0)
+    {
+        enemyXPos += enemyXSpeed;
+    } else
+    {
+        enemyXSpeed = enemyXSpeed * (-1);
+        enemyXPos += enemyXSpeed;
+    }
+    if(enemyYPos < HEIGHT && enemyYPos > 0)
+    {
+        enemyYPos += enemyYSpeed;
+    } else
+    {
+        enemyYSpeed = enemyYSpeed * (-1);
+        enemyYPos += enemyYSpeed;
+    }
 
-	animation.x = enemyXPos;
-	animation.y = enemyYPos;
+    animation.x = enemyXPos;
+    animation.y = enemyYPos;
 
-	
+
 }
+
+function tickEventFairy()
+{
+    //Make sure enemy bat is within game boundaries and move enemy Bat
+    if(fairyXPos < WIDTH && fairyXPos > 0)
+    {
+        fairyXPos += fairyXSpeed;
+    } else
+    {
+        fairyXSpeed = fairyXSpeed * (-1);
+        fairyXPos += fairyXSpeed;
+    }
+    if(fairyYPos < HEIGHT && fairyYPos > 0)
+    {
+        fairyYPos += fairyYSpeed;
+    } else
+    {
+        fairyYSpeed = fairyYSpeed * (-1);
+        fairyYPos += fairyYSpeed;
+    }
+
+    animationf.x = fairyXPos;
+    animationf.y = fairyYPos;
+
+
+}
+
+
 
 
 function handleMouseMove(event)
@@ -186,8 +235,8 @@ function handleMouseMove(event)
 
 function handleMouseDown(event)
 {
-    
-   //Play Gunshot sound
+
+    //Play Gunshot sound
     createjs.Sound.play("shot");
 
     //Increase speed of enemy slightly
@@ -207,45 +256,45 @@ function handleMouseDown(event)
     // Anywhere in the body or head is a hit - but not the wings
     if(distX < 30 && distY < 59 )
     {
-    	//Hit
-    	stage.removeChild(animation);
-    	batDeath();
-    	score += 100;
-    	scoreText.text = "1UP: " + score.toString();
-    	createjs.Sound.play("deathSound");
-    	
-        //Make it harder next time
-    	enemyYSpeed *= 1.25;
-    	enemyXSpeed *= 1.3;
+        //Hit
+        stage.removeChild(animation);
+        batDeath();
+        score += 100;
+        scoreText.text = "1UP: " + score.toString();
+        createjs.Sound.play("deathSound");
 
-    	//Create new enemy
-    	var timeToCreate = Math.floor((Math.random()*3500)+1);
-	    setTimeout(createEnemy,timeToCreate);
+        //Make it harder next time
+        enemyYSpeed *= 1.25;
+        enemyXSpeed *= 1.3;
+
+        //Create new enemy
+        var timeToCreate = Math.floor((Math.random()*3500)+1);
+        setTimeout(createEnemy,timeToCreate);
 
     } else
     {
-    	//Miss
-    	score -= 10;
-    	scoreText.text = "1UP: " + score.toString();
+        //Miss
+        score -= 10;
+        scoreText.text = "1UP: " + score.toString();
 
     }
 }
 
 function updateTime()
 {
-	gameTime += 1;
-	if(gameTime > 60)
-	{
-		//End Game and Clean up
-		timerText.text = "GAME OVER";
-		stage.removeChild(animation);
-		stage.removeChild(crossHair);
-		var si =createjs.Sound.play("gameOverSound");
-		clearInterval(gameTimer);
-	}
-	else
-	{
-		timerText.text = "Time: " + gameTime
-    createjs.Sound.play("tick");
-	}
+    gameTime += 1;
+    if(gameTime > 60)
+    {
+        //End Game and Clean up
+        timerText.text = "GAME OVER";
+        stage.removeChild(animation);
+        stage.removeChild(crossHair);
+        var si =createjs.Sound.play("gameOverSound");
+        clearInterval(gameTimer);
+    }
+    else
+    {
+        timerText.text = "Time: " + gameTime
+        createjs.Sound.play("tick");
+    }
 }
