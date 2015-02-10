@@ -31,8 +31,9 @@ var enemyYSpeed = 1.75;
 var fairyXSpeed = 2.8;
 var fairyYSpeed = 0.7;
 
-var batXSpeed = 2.5;
-var batYSpeed = 5.2;
+var batXSpeed = 1.2;
+var batYSpeed = 2.8;
+
 var score = 0;
 var scoreText;
 var gameTimer;
@@ -324,14 +325,14 @@ function handleMouseDown(event)
     createjs.Sound.play("shot");
 
     //Increase speed of enemy slightly
-    enemyXSpeed *= 1.05;
-    enemyYSpeed *= 1.06;
+    enemyXSpeed *= 1.03;
+    enemyYSpeed *= 1.04;
 
-	batXSpeed *= 1.06;
-	batYSpeed *= 1.07;
+	batXSpeed *= 1.04;
+	batYSpeed *= 1.05;
 
-	fairyXSpeed *= 1.07;
-	fairyYSpeed *= 1.08;
+	fairyXSpeed *= 1.06;
+	fairyYSpeed *= 1.07;
 
     //Obtain Shot position
     var shotX = Math.round(event.clientX);
