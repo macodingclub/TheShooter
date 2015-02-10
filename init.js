@@ -52,7 +52,7 @@ window.onload = function()
      *
      */
     queue.loadManifest([
-        {id: 'backgroundImage', src: 'assets/background.png'},
+        {id: 'backgroundImage', src: 'assets/waterlilies.png'},
         {id: 'crossHair', src: 'assets/crosshair.png'},
         {id: 'shot', src: 'assets/shot.mp3'},
         {id: 'background', src: 'assets/countryside.mp3'},
