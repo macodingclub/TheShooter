@@ -51,9 +51,9 @@ var manifest = [
         {id: 'dragonFlySpritesheet', src: 'assets/dragonFlySpritesheet.png'},
         {id: 'fairySpritesheet', src: 'assets/fairySpritesheet.png'},
         {id: 'batDeath', src: 'assets/batDeath.png'}
-    ]
+    ];
 
-window.onload = function()
+function init()
 {
     /*
      *      Set up the Canvas with Size and height
@@ -372,14 +372,14 @@ function ifHitTarget(distX, distY, animation, createObject, death){
      createjs.Sound.play("deathSound");
 
      //Make it harder next time
-     enemyYSpeed *= 1.25;
-     enemyXSpeed *= 1.3;
+     enemyYSpeed *= 1.15;
+     enemyXSpeed *= 1.2;
 
-	 batXSpeed *= 1.25;
-	 batYSpeed *= 1.3;
+	 batXSpeed *= 1.15;
+	 batYSpeed *= 1.2;
 
-	 fairyXSpeed *= 1.25;
-	 fairyYSpeed *= 1.3;
+	 fairyXSpeed *= 1.15;
+	 fairyYSpeed *= 1.2;
 
      //Create new enemy
      var timeToCreate = Math.floor((Math.random()*3500)+1);
