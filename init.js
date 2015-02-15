@@ -293,6 +293,7 @@ function bubblePop()
     bubblePopAnimation.x = bubbleXPos;
     bubblePopAnimation.y = bubbleYPos;
     bubblePopAnimation.gotoAndPlay("die");
+    gameTime -=3;
     stage.addChild(bubblePopAnimation);
 
 
