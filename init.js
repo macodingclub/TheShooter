@@ -14,7 +14,7 @@ var animationBat;
 var animationBubble;
 
 
-var bubblePopAnimation
+var bubblePopAnimation;
 var deathAnimationBat;
 var deathAnimation;
 var spriteSheet;
@@ -50,7 +50,10 @@ var score = 0;
 var scoreText;
 var gameTimer;
 var gameTime = 0;
+var shootCounter = 0;
 var timerText;
+var missedShootsText;
+var isObjectMissed = true;
 
 var manifest = [
     {id: 'backgroundImage', src: 'assets/waterlilies.png'},
@@ -122,6 +125,11 @@ function queueLoaded(event)
     timerText.y = 10;
     stage.addChild(timerText);
 
+    missedShootsText = new createjs.Text("Missed Shoots: " +  shootCounter.toString(), "36px Arial", "#FFF");
+    missedShootsText.x = 10;
+    missedShootsText.y = 46;
+    stage.addChild(missedShootsText);
+
     // Play background sound
     createjs.Sound.play("background", {loop: -1});
 
@@ -144,7 +152,7 @@ function queueLoaded(event)
         spriteSheetBubble : new createjs.SpriteSheet({
             "images": [queue.getResult('bubbleSpritesheet')],
             "frames": {"width": 50, "height": 50},
-            "animations": {"flap": [0, 7]}
+            "animations": {"flap": [0, 16], speed: 5}
         }),
 
         // Create bat spritesheet
@@ -240,6 +248,7 @@ function createBubble()
 
 function batDeath()
 {
+    shootCounter = 0;
     deathAnimationBat = new createjs.Sprite(batDeathSpriteSheet, "die");
     deathAnimationBat.regX = 99;
     deathAnimationBat.regY = 58;
@@ -251,6 +260,7 @@ function batDeath()
 
 function dragonFlyDeath()
 {
+    shootCounter = 0;
     deathAnimation = new createjs.Sprite(batDeathSpriteSheet, "die");
     deathAnimation.regX = 99;
     deathAnimation.regY = 58;
@@ -262,19 +272,21 @@ function dragonFlyDeath()
 
 function fairyDeath()
 {
+    shootCounter = 0;
     timerText.text = "GAME OVER";
     stage.removeChild(animation);
     stage.removeChild(animationf);
     stage.removeChild(animationBat);
     stage.removeChild(animationBubble);
     stage.removeChild(crossHair);
-    var si =createjs.Sound.play("gameOverSound");
+    var si = createjs.Sound.play("gameOverSound");
     clearInterval(gameTimer);
 }
 
 //to do
 function bubblePop()
 {
+    shootCounter = 0;
     bubblePopAnimation = new createjs.Sprite(batDeathSpriteSheet, "die");
     bubblePopAnimation.regX = 25;
     bubblePopAnimation.regY = 25;
@@ -446,6 +458,8 @@ function handleMouseDown(event)
     var distXBubble = Math.abs(shotX - spriteXBubble);
     var distYBubble = Math.abs(shotY - spriteYBubble);
 
+ var areAllMissed = false;
+
 
     ifHitTarget(distX, distY, animation, createEnemy, dragonFlyDeath);
     ifHitTarget(distXFairy, distYFairy, animationf, createFairy, fairyDeath);
@@ -454,10 +468,12 @@ function handleMouseDown(event)
 
 
     // Anywhere in the body or head is a hit - but not the wings
-    function ifHitTarget(distX, distY, animation, createObject, death){
+    function ifHitTarget(distX, distY, animation, createObject, death, isObjectMissed){
         if(distX < 30 && distY < 59 )
         {
             //Hit
+            isObjectMissed = false;
+            console.log(isObjectMissed);
             stage.removeChild(animation);
             death();
             score += 100;
@@ -485,12 +501,23 @@ function handleMouseDown(event)
 
         } else
         {
-            //Miss
-            score -= 10;
+            if (score > 0){
+            score -= 10}
             scoreText.text = "1UP: " + score.toString();
 
+            if(shootCounter == 7){
+                fairyDeath();
+            }
+
+            //Miss
+            isObjectMissed = true;
+            console.log(isObjectMissed);
         }
-    }
+
+    }  if(isObjectMissed) {
+        shootCounter ++;
+        missedShootsText.text = "Missed Shoots: " + (shootCounter).toString();
+        }
 }
 
 function updateTime()
