@@ -20,6 +20,7 @@ var deathAnimation;
 var spriteSheet;
 var spriteSheetFairy;
 var spriteSheetBubble;
+var bubblePopSpriteSheet;
 
 
 var enemyXPos=100;
@@ -28,8 +29,8 @@ var enemyYPos=100;
 var fairyXPos=300;
 var fairyYPos=50;
 
-var bubbleXPos=50;
-var bubbleYPos=50;
+var bubbleXPos=500;
+var bubbleYPos=500;
 
 var batXPos = 1000;
 var batYPos = 700;
@@ -67,6 +68,7 @@ var manifest = [
     {id: 'dragonFlySpritesheet', src: 'assets/dragonFlySpritesheet.png'},
     {id: 'fairySpritesheet', src: 'assets/fairySpritesheet.png'},
     {id: 'bubbleSpritesheet', src: 'assets/bubble.png'},
+    {id: 'bubblePop', src: 'assets/bubblePop.png'},
     {id: 'batDeath', src: 'assets/batDeath.png'}
 ];
 
@@ -152,7 +154,7 @@ function queueLoaded(event)
         spriteSheetBubble : new createjs.SpriteSheet({
             "images": [queue.getResult('bubbleSpritesheet')],
             "frames": {"width": 50, "height": 50},
-            "animations": {"flap": [0, 16], speed: 5}
+            "animations": {"flap": [0, 7], speed: 0.5}
         }),
 
         // Create bat spritesheet
@@ -161,6 +163,8 @@ function queueLoaded(event)
             "frames": {"width": 198, "height": 117},
             "animations": {"flap": [0, 4]}
         })
+
+
     };
 
     // Create bat death spritesheet
@@ -168,6 +172,11 @@ function queueLoaded(event)
         "images": [queue.getResult('batDeath')],
         "frames": {"width": 198, "height" : 148},
         "animations": {"die": [0,7, false,1 ] }
+    });
+    bubblePopSpriteSheet= new createjs.SpriteSheet({
+        "images": [queue.getResult('bubblePop')],
+        "frames": {"width": 200, "height" : 148},
+        "animations": {"die": [0,4, false,1 ] }
     });
 
     // Create bat sprite
@@ -188,7 +197,7 @@ function queueLoaded(event)
     stage.addChild(crossHair);
 
     // Add ticker
-    createjs.Ticker.setFPS(15);
+    createjs.Ticker.setFPS(30);
     createjs.Ticker.addEventListener('tick', stage);
     createjs.Ticker.addEventListener('tick', tickEvent);
     createjs.Ticker.addEventListener('tick', tickEventFairy);
@@ -248,6 +257,7 @@ function createBubble()
 
 function batDeath()
 {
+    gameTime -=1;
     shootCounter = 0;
     deathAnimationBat = new createjs.Sprite(batDeathSpriteSheet, "die");
     deathAnimationBat.regX = 99;
@@ -260,6 +270,7 @@ function batDeath()
 
 function dragonFlyDeath()
 {
+    gameTime -=1;
     shootCounter = 0;
     deathAnimation = new createjs.Sprite(batDeathSpriteSheet, "die");
     deathAnimation.regX = 99;
@@ -272,6 +283,7 @@ function dragonFlyDeath()
 
 function fairyDeath()
 {
+    gameTime -=1;
     shootCounter = 0;
     timerText.text = "GAME OVER";
     stage.removeChild(animation);
@@ -286,14 +298,28 @@ function fairyDeath()
 //to do
 function bubblePop()
 {
+    gameTime -=3;
     shootCounter = 0;
-    bubblePopAnimation = new createjs.Sprite(batDeathSpriteSheet, "die");
-    bubblePopAnimation.regX = 25;
-    bubblePopAnimation.regY = 25;
+
+    //Decrease enemy speed
+    enemyYSpeed /= 1.3;
+    enemyXSpeed /= 1.35;
+
+    batXSpeed /= 1.25;
+    batYSpeed /= 1.3;
+
+    fairyXSpeed /= 1.2;
+    fairyYSpeed /= 1.25;
+
+    bubbleXSpeed /= 1.15;
+    bubbleYSpeed /= 1.2;
+
+    bubblePopAnimation = new createjs.Sprite(bubblePopSpriteSheet, "die");
+    bubblePopAnimation.regX = 99;
+    bubblePopAnimation.regY = 58;
     bubblePopAnimation.x = bubbleXPos;
     bubblePopAnimation.y = bubbleYPos;
     bubblePopAnimation.gotoAndPlay("die");
-    gameTime -=3;
     stage.addChild(bubblePopAnimation);
 
 
@@ -321,7 +347,6 @@ function tickEvent()
 
     animation.x = enemyXPos;
     animation.y = enemyYPos;
-
 
 }
 
@@ -416,19 +441,6 @@ function handleMouseDown(event)
     //Play Gunshot sound
     createjs.Sound.play("shot");
 
-    //Increase speed of enemy slightly
-    enemyXSpeed *= 1.03;
-    enemyYSpeed *= 1.04;
-
-    batXSpeed *= 1.04;
-    batYSpeed *= 1.05;
-
-    fairyXSpeed *= 1.06;
-    fairyYSpeed *= 1.07;
-
-    bubbleXSpeed *= 1.1;
-    bubbleYSpeed *= 0.9;
-
     //Obtain Shot position
     var shotX = Math.round(event.clientX);
     var shotY = Math.round(event.clientY);
@@ -482,17 +494,17 @@ function handleMouseDown(event)
             createjs.Sound.play("deathSound");
 
             //Make it harder next time
-            enemyYSpeed *= 1.15;
-            enemyXSpeed *= 1.2;
+            enemyYSpeed *= 1.25;
+            enemyXSpeed *= 1.3;
 
-            batXSpeed *= 1.15;
-            batYSpeed *= 1.2;
+            batXSpeed *= 1.2;
+            batYSpeed *= 1.25;
 
-            //fairyXSpeed *= 1.15;
-            //fairyYSpeed *= 1.2;
+            fairyXSpeed *= 1.15;
+            fairyYSpeed *= 1.2;
 
-            bubbleXSpeed *= 1.05;
-            bubbleYSpeed *= 1.02;
+            bubbleXSpeed *= 1.1;
+            bubbleYSpeed *= 1.15;
 
 
 
@@ -518,6 +530,7 @@ function handleMouseDown(event)
     }  if(isObjectMissed) {
         shootCounter ++;
         missedShootsText.text = "Missed Shoots: " + (shootCounter).toString();
+
         }
 }
 
