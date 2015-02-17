@@ -302,14 +302,14 @@ function bubblePop()
     shootCounter = 0;
 
     //Decrease enemy speed
-    enemyYSpeed /= 1.3;
-    enemyXSpeed /= 1.35;
+    enemyYSpeed /= 1.15;
+    enemyXSpeed /= 1.2;
 
-    batXSpeed /= 1.25;
-    batYSpeed /= 1.3;
+    batXSpeed /= 1.1;
+    batYSpeed /= 1.15;
 
-    fairyXSpeed /= 1.2;
-    fairyYSpeed /= 1.25;
+    fairyXSpeed /= 1.1;
+    fairyYSpeed /= 1.15;
 
     bubbleXSpeed /= 1.15;
     bubbleYSpeed /= 1.2;
